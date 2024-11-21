@@ -1,6 +1,13 @@
 # tgObserveBot
 
 Run bot:
+```bash
+./runme.sh
 ```
-python main.py
+
+Example .env:
+```
+DB_DATABASE_NAME=database.db
+
+BOT_TOKEN=8888888888:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 ```

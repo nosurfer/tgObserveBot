@@ -2,6 +2,8 @@ import sqlite3
 import logging
 import asyncio
 import re
+import os
+
 
 async def stringFilter(string: str) -> str:
     string = re.sub(r"[\"\'\-*/#;&|(){}\\]", "", string)
@@ -9,13 +11,14 @@ async def stringFilter(string: str) -> str:
     string = re.sub(r'/\*.*?\*/', '', string, flags=re.DOTALL)
     return string
 
+
 class InteractionWithDB:
     """Easy way to interact with db"""
 
     def __init__(self) -> None:
         """Инициализация класса"""
         try:
-            self.connection = sqlite3.connect("database.db", autocommit=True)
+            self.connection = sqlite3.connect(db_name, autocommit=True)
             self.cursor = self.connection.cursor()
         except sqlite3.Error as error:
             logging.error(f"Sqlite error: {error}, __init__")

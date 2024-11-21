@@ -1,24 +1,25 @@
+import sys
 import asyncio
 import logging
-import sys
+from os import getenv
+from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 
 from handlers import user_handler, admin_handler, owner_handler, bot_handler
 
 from utils.commands import setCommands
-from utils.sql import InteractionWithDB
+from database.core import Database
 
-from config import BOT_TOKEN
+load_dotenv()
 
+BOT_TOKEN = getenv("BOT_TOKEN")
 owners = [1149076542, 1229865646]
-# owners = [1229865646]
 
 bot = Bot(token=BOT_TOKEN)
-db = InteractionWithDB()
-
+db = Database()
 
 async def main() -> None:
     dp = Dispatcher()
