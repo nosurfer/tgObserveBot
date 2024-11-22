@@ -23,6 +23,15 @@ async def start_handler(message: Message) -> None:
     title = """Простой и удобный телеграм бот для проведения опросов.\
         Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"""
     
+    if await Database.checkUser(user_id):
+        await message.answer("ты в базе)))")
+    else:
+        await message.answer("ты не базе(")
+        await Database.insertUser(user_id, user_name)
+
+    message.answer(await Database.selectUser())
+
+
     # проверка есть ли пользователь в системе
     # да - дальше
     # нет - добавить
@@ -35,23 +44,23 @@ async def start_handler(message: Message) -> None:
     # есть - добавить пользователю
     # отуствует - сказать об ошибке
 
-    if not await Database.checkUser(user_id):
-        await Database.insertUser(user_id, user_name)
-        msg = f"{mention}, Вы были добавлены в систему.\n\n"
-    else:
-        msg = f"{mention}, Вы уже были зарегистрированы.\n\n"
+    # if not await Database.checkUser(user_id):
+    #     await Database.insertUser(user_id, user_name)
+    #     msg = f"{mention}, Вы были добавлены в систему.\n\n"
+    # else:
+    #     msg = f"{mention}, Вы уже были зарегистрированы.\n\n"
     
-    if not await Database.checkUserGroup(user_id, group_id):
-        if await Database.checkGroup(group_id):
-            await Database.insertUserGroup(user_id, group_id)
+    # if not await Database.checkUserGroup(user_id, group_id):
+    #     if await Database.checkGroup(group_id):
+    #         await Database.insertUserGroup(user_id, group_id)
     
-    msg += "Привязанные группы:\n"
-    groups = await Database.selectUserGroup(user_id)
-    for index, i in enumerate(groups, start=1):
-        group_name = await Database.selectGroup(*i)
-        msg += f"{index}) " + group_name[0][0] + "\n"
+    # msg += "Привязанные группы:\n"
+    # groups = await Database.selectUserGroup(user_id)
+    # for index, i in enumerate(groups, start=1):
+    #     group_name = await Database.selectGroup(*i)
+    #     msg += f"{index}) " + group_name[0][0] + "\n"
     
-    await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")
+    # await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")
 
 
     # if await Database.checkUser(user_id):

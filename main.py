@@ -25,7 +25,7 @@ async def main() -> None:
     )
 
     await Database.createTables()
-    await setCommands(bot)
+    # await setCommands(bot)
     await dp.start_polling(bot, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 if __name__ == "__main__":
