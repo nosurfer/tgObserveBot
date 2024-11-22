@@ -1,11 +1,11 @@
+import main
+
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.types import Message, ReplyKeyboardRemove, PollAnswer
 
 from filters.own_filters import IsOwner, ChatTypeFilter
 from utils.kbrd import get_keyboard
-
-import main
 
 router = Router()
 router.message.filter(ChatTypeFilter("private"), IsOwner())

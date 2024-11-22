@@ -1,7 +1,10 @@
 from aiogram import Bot
 from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeAllPrivateChats
 
-import main
+from database.core import Database
+from base_config import env_values
+
+
 # https://www.youtube.com/watch?v=HRAzGBdwCkw&ab_channel=NZTCODER
 
 async def setCommands(bot: Bot):
@@ -39,11 +42,9 @@ async def setCommands(bot: Bot):
     ]
 
     await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeAllPrivateChats())
-    for user_value in await main.db.selectUser():
-        user_id, username = user_value
-        await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeChat(chat_id=user_id))
-    for user_value in await main.db.searchAdmin():
-        group_id, user_id = user_value
-        await bot.set_my_commands(commands=admin_commands, scope=BotCommandScopeChat(chat_id=user_id))
-    for user_id in main.owners:
+    for user in await Database.selectUser():
+        await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeChat(chat_id=user.user_id))
+    for user in await Database.selectAdmin():
+        await bot.set_my_commands(commands=admin_commands, scope=BotCommandScopeChat(chat_id=user.user_id))
+    for user_id in env_values["OWNERS"].split(";"):
         await bot.set_my_commands(commands=owner_commands, scope=BotCommandScopeChat(chat_id=user_id))

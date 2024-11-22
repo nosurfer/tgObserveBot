@@ -3,7 +3,9 @@ import asyncio
 from aiogram.filters import Filter
 from aiogram.types import Message
 
-import main
+from database.core import Database
+from base_config import env_values
+
 
 class ChatTypeFilter(Filter):
     def __init__(self, chat_types: list[str] | str) -> None:
@@ -20,7 +22,7 @@ class IsAdmin(Filter):
         pass
 
     async def __call__(self, message: Message) -> bool:
-        return await main.db.checkValue(user_id=message.from_user.id, is_admin=True)
+        return await Database.checkValue(user_id=message.from_user.id, is_admin=True)
 
 
 class IsOwner(Filter):
@@ -28,4 +30,4 @@ class IsOwner(Filter):
         pass
 
     async def __call__(self, message: Message) -> bool:
-        return message.from_user.id in main.owners
+        return message.from_user.id in env_values["OWNERS"]
