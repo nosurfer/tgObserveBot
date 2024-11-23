@@ -38,18 +38,18 @@ class InteractionWithDB:
     #         logging.error(f"Sqlite error: {error}, insertUser")
     
 
-    # async def insertGroup(self, group_id: int, group_name: str):
-    #     '''
-    #     Вставляет в groups: group_id и group_name (groups)\n
-    #     Ничего не возвращает
-    #     '''
-    #     group_name = await stringFilter(group_name)
-    #     sql_query = f"INSERT INTO groups (group_id, group_name) VALUES ({group_id}, '{group_name}');"
-    #     try:
-    #         self.cursor.execute(sql_query)
-    #         logging.info(f"{group_id} {group_name} group has been added")
-    #     except sqlite3.Error as error:
-    #         logging.error(f"Sqlite error: {error}, insertGroup")
+    async def insertGroup(self, group_id: int, group_name: str):
+        '''
+        Вставляет в groups: group_id и group_name (groups)\n
+        Ничего не возвращает
+        '''
+        group_name = await stringFilter(group_name)
+        sql_query = f"INSERT INTO groups (group_id, group_name) VALUES ({group_id}, '{group_name}');"
+        try:
+            self.cursor.execute(sql_query)
+            logging.info(f"{group_id} {group_name} group has been added")
+        except sqlite3.Error as error:
+            logging.error(f"Sqlite error: {error}, insertGroup")
     
 
     async def insertAdmin(self, group_id: int, *users_id: int) -> None:
@@ -117,19 +117,19 @@ class InteractionWithDB:
         except sqlite3.Error as error:
             logging.error(f"Sqlite error: {error}, {group_id} {group_name} group has not been deleted")
 
-    # async def searchAdmin(self, group_id: int = None):
-    #     '''
-    #     Все user_id по group_id (group_admin)
-    #     Все group_id и user_id
-    #     '''
-    #     if group_id:
-    #         sql_query = f"SELECT user_id FROM group_admin WHERE group_id = {group_id};"
-    #     else:
-    #         sql_query = f"SELECT * FROM group_admin;"
-    #     try:
-    #         return self.cursor.execute(sql_query).fetchall()
-    #     except sqlite3.Error as error:
-    #         logging.error(f"Sqlite error: {error}, searchAdmin")
+    async def searchAdmin(self, group_id: int = None):
+        '''
+        Все user_id по group_id (group_admin)
+        Все group_id и user_id
+        '''
+        if group_id:
+            sql_query = f"SELECT user_id FROM group_admin WHERE group_id = {group_id};"
+        else:
+            sql_query = f"SELECT * FROM group_admin;"
+        try:
+            return self.cursor.execute(sql_query).fetchall()
+        except sqlite3.Error as error:
+            logging.error(f"Sqlite error: {error}, searchAdmin")
         
 
     # async def selectUser(self, user_id: int = None) -> list:

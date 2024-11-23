@@ -48,7 +48,17 @@ class Database:
             await session.commit()
     
     @staticmethod
+    async def insertGroupAdmin(group_id: int, user_id: str):
+        """✅"""
+        async with async_session_factory() as session:
+            group_admin = GroupAdminsOrm(group_id=group_id, user_id=user_id)
+            session.add(group_admin)
+            await session.flush()
+            await session.commit()
+    
+    @staticmethod
     async def selectUser(user_id: int = None):
+        """✅"""
         async with async_session_factory() as session:
             if user_id is None:
                 query = select(UsersOrm)
@@ -57,6 +67,18 @@ class Database:
             result = await session.execute(query)
             users = result.scalars().all()
             return {user.user_id:user.user_name for user in users}
+    
+    @staticmethod
+    async def selectGroup(group_id: int = None):
+        """✅"""
+        async with async_session_factory() as session:
+            if group_id is None:
+                query = select(GroupsOrm)
+            else:
+                query = select(GroupsOrm).where(GroupsOrm.group_id == group_id)
+            result = await session.execute(query)
+            groups = result.scalars().all()
+            return {group.group_id:group.group_name for group in groups}
 
     @staticmethod
     async def selectUserGroup(user_id: int) -> dict:
@@ -68,16 +90,21 @@ class Database:
                 options=[selectinload(UsersOrm.groups)]
             )
             return {group.group_id:group.group_name for group in user.groups}
-
+    
     @staticmethod
-    async def selectAdmin(group_id: int = None):
+    async def selectAdmin(user_id: int = None, group_id: int = None):
+        """✅"""
         async with async_session_factory() as session:
-            if group_id == None:
-                query = select(GroupsOrm)
+            if user_id is None and group_id is None:
+                query = select(GroupAdminsOrm)
+            elif user_id is not None:
+                query = select(GroupAdminsOrm).where(GroupAdminsOrm.user_id == user_id)
             else:
-                query = select(GroupsOrm(group_id=group_id))
+                query = select(GroupAdminsOrm).where(GroupAdminsOrm.group_id == group_id)
             result = await session.execute(query)
-            return result.scalars().all()
+            groups = result.scalars().all()
+            print(groups)
+            return {group.group_id:group.user_id for group in groups}
     
     @staticmethod
     async def checkUser(user_id: int) -> bool:

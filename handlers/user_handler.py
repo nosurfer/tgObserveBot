@@ -23,13 +23,18 @@ async def start_handler(message: Message) -> None:
     title = """Простой и удобный телеграм бот для проведения опросов.\
         Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"""
     
-    if await Database.checkUser(user_id):
-        await message.answer("ты в базе)))")
-    else:
-        await message.answer("ты не базе(")
-        await Database.insertUser(user_id, user_name)
+    # await Database.insertUser(user_id, user_name)
+    # await Database.insertGroup(1234567890, "aboba")
+    # await Database.insertUserGroup(1149076542, 1234567890)
+    # await Database.insertGroupAdmin(1234567890, 1149076542)
 
-    message.answer(await Database.selectUser())
+    # await message.answer(str(await Database.selectUser()))
+    # await message.answer(str(await Database.selectGroup()))
+    # await message.answer(str(await Database.selectUserGroup(1149076542)))
+    await message.answer(str(await Database.selectGroupAdmin()))
+    
+    
+
 
 
     # проверка есть ли пользователь в системе
