@@ -87,3 +87,13 @@ if await Database.checkUser(user_id):
         await message.answer("тебя нет в этой группе")
 
     await message.answer(str(await Database.selectUserGroup(user_id)))
+
+
+    if await Database.checkUser(user_id):
+        msg += f"{mention}, вы уже прошли регистрацию.\n\n***Dev by @Sirius_Real, @ownnickname***"
+        await message.answer(msg, parse_mode="Markdown")
+    else:
+        user_fullname = ("@" + message.from_user.username) or (message.from_user.first_name or "" + " " + message.from_user.last_name or "")
+        await Database.insertUser(user_id, user_fullname)
+        msg += f"{mention}, вы были успешно зарегистрированы!\n\n***Dev by @Sirius_Real, @ownnickname***"
+        await message.answer(msg, parse_mode="Markdown")

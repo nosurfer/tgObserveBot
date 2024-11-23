@@ -42,9 +42,17 @@ async def setCommands(bot: Bot):
     ]
 
     await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeAllPrivateChats())
-    for user in await Database.selectUser():
-        await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeChat(chat_id=user.user_id))
-    for user in await Database.selectAdmin():
-        await bot.set_my_commands(commands=admin_commands, scope=BotCommandScopeChat(chat_id=user.user_id))
+    try:
+        for user_id, user_name in users:
+            print(user_id, user_name)
+            await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeChat(chat_id=user_id))
+    except:
+        pass
+    try:
+        for group_id, user_id in admins:
+            print(user_id, user_name)
+            await bot.set_my_commands(commands=admin_commands, scope=BotCommandScopeChat(chat_id=user_id))
+    except:
+        pass
     for user_id in env_values["OWNERS"].split(";"):
         await bot.set_my_commands(commands=owner_commands, scope=BotCommandScopeChat(chat_id=user_id))

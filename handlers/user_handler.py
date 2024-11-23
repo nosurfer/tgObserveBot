@@ -10,12 +10,7 @@ router = Router()
 
 
 @router.message(CommandStart())
-async def start_handler(message: Message) -> None:
-    try:
-        group_id = message.text.split()[1]
-    except:
-        group_id = 0
-        
+async def start_handler(message: Message) -> None:    
     user_id = message.from_user.id
     user_name = message.from_user.username or message.from_user.first_name
     mention = "[@"+user_name+"](tg://user?id="+str(user_id)+")"
@@ -23,20 +18,6 @@ async def start_handler(message: Message) -> None:
     title = """Простой и удобный телеграм бот для проведения опросов.\
         Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"""
     
-    # await Database.insertUser(user_id, user_name)
-    # await Database.insertGroup(1234567890, "aboba")
-    # await Database.insertUserGroup(1149076542, 1234567890)
-    # await Database.insertGroupAdmin(1234567890, 1149076542)
-
-    # await message.answer(str(await Database.selectUser()))
-    # await message.answer(str(await Database.selectGroup()))
-    # await message.answer(str(await Database.selectUserGroup(1149076542)))
-    await message.answer(str(await Database.selectGroupAdmin()))
-    
-    
-
-
-
     # проверка есть ли пользователь в системе
     # да - дальше
     # нет - добавить
@@ -49,30 +30,23 @@ async def start_handler(message: Message) -> None:
     # есть - добавить пользователю
     # отуствует - сказать об ошибке
 
-    # if not await Database.checkUser(user_id):
-    #     await Database.insertUser(user_id, user_name)
-    #     msg = f"{mention}, Вы были добавлены в систему.\n\n"
-    # else:
-    #     msg = f"{mention}, Вы уже были зарегистрированы.\n\n"
-    
-    # if not await Database.checkUserGroup(user_id, group_id):
-    #     if await Database.checkGroup(group_id):
-    #         await Database.insertUserGroup(user_id, group_id)
-    
-    # msg += "Привязанные группы:\n"
-    # groups = await Database.selectUserGroup(user_id)
-    # for index, i in enumerate(groups, start=1):
-    #     group_name = await Database.selectGroup(*i)
-    #     msg += f"{index}) " + group_name[0][0] + "\n"
-    
-    # await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")
+    try:
+        user_group_id = message.text.split()[1]
+    except:
+        user_group_id = 0
 
-
-    # if await Database.checkUser(user_id):
-    #     msg += f"{mention}, вы уже прошли регистрацию.\n\n***Dev by @Sirius_Real, @ownnickname***"
-    #     await message.answer(msg, parse_mode="Markdown")
-    # else:
-    #     user_fullname = ("@" + message.from_user.username) or (message.from_user.first_name or "" + " " + message.from_user.last_name or "")
-    #     await Database.insertUser(user_id, user_fullname)
-    #     msg += f"{mention}, вы были успешно зарегистрированы!\n\n***Dev by @Sirius_Real, @ownnickname***"
-    #     await message.answer(msg, parse_mode="Markdown")
+    if await Database.checkUser(user_id):
+        msg = f"{mention}, Вы уже были зарегистрированы.\n\n"
+    else:
+        await Database.insertUser(user_id, user_name)
+        msg = f"{mention}, Вы были добавлены в систему.\n\n"
+    
+    if not await Database.checkUserGroup(user_id, user_group_id):
+        if await Database.checkGroup(user_group_id):
+            await Database.insertUserGroup(user_id, user_group_id)
+    
+    msg += "Привязанные группы:\n"
+    for group_id, group_name in await Database.selectUserGroup(user_id):
+        msg += group_name + "\n"
+    
+    await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")
