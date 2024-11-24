@@ -4,7 +4,8 @@ from aiogram.types import ChatMemberUpdated
 
 from utils.kbrd import get_inline_keyboard
 
-import main
+from database.core import Database
+import main 
 
 router = Router()
 
@@ -19,13 +20,17 @@ async def bot_group_member_status(update: ChatMemberUpdated):
     
     if status == "member":
         admins = await main.bot.get_chat_administrators(chat_id=chat_id)
-        admins = [_.user.id for _ in admins]
-        await main.db.insertAdmin(chat_id, *admins)
+        admins = [(_.user.id, _.user.username or _.user.first_name) for _ in admins]
+        await Database.insertGroup(group_id=chat_id, group_name=chat_name)
+        for admin in admins:
+            admin_id, admin_name = admin
+            if not await Database.checkUser(user_id=admin_id):
+                await Database.insertUser(user_id=admin_id, user_name=admin_name)
+            await Database.insertUserGroup(user_id=admin_id, group_id=chat_id)
+            await Database.updateAdmin(group_id=chat_id, user_id=admin_id, value=True)
         bot_info = await main.bot.get_me()
         kbrd = get_inline_keyboard(("Зарегистрироваться", None, f"https://t.me/{bot_info.username}?start={chat_id}"))
 
-        await main.db.insertGroup(chat_id, chat_name)
         await update.answer(msg + "***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown", reply_markup=kbrd)
     else:
-        await main.db.deleteGroup(chat_id, chat_name)
-        
+        await Database.deleteGroup(group_id=chat_id)

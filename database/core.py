@@ -2,9 +2,9 @@ import asyncio
 
 from sqlalchemy_utils import database_exists
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select
+from sqlalchemy import select, delete, update, and_, text
 
-from database.models import UsersOrm, GroupsOrm, UserGroupsOrm, GroupAdminsOrm
+from database.models import UsersOrm, GroupsOrm, UserGroupsOrm
 from database.database import async_engine, async_session_factory, Base
 
 from database.config import settings
@@ -33,6 +33,7 @@ class Database:
     async def insertGroup(group_id: int, group_name: str) -> None:
         """Insert group_id and group_name in groups table"""
         async with async_session_factory() as session:
+            group_name = group_name.replace("*", "")
             group = GroupsOrm(group_id=group_id, group_name=group_name)
             session.add(group)
             await session.flush()
@@ -44,15 +45,6 @@ class Database:
         async with async_session_factory() as session:
             user_group = UserGroupsOrm(user_id=user_id, group_id=group_id)
             session.add(user_group)
-            await session.flush()
-            await session.commit()
-    
-    @staticmethod
-    async def insertGroupAdmin(group_id: int, user_id: str) -> None:
-        """Insert group_id and user_id in group_admin table"""
-        async with async_session_factory() as session:
-            group_admin = GroupAdminsOrm(group_id=group_id, user_id=user_id)
-            session.add(group_admin)
             await session.flush()
             await session.commit()
     
@@ -84,7 +76,7 @@ class Database:
 
     @staticmethod
     async def selectUserGroup(user_id: int) -> dict:
-        """Select group where user is admin by group_id
+        """Select group where be user by group_id
         Return dict - {group_id: group_name, ...}"""
         async with async_session_factory() as session:
             user = await session.get(
@@ -100,11 +92,23 @@ class Database:
         Return dict {group_id: user_id, ...}"""
         async with async_session_factory() as session:
             if user_id is None and group_id is None:
-                query = select(GroupAdminsOrm)
+                query = select(UserGroupsOrm).where(
+                    UserGroupsOrm.is_admin == 1
+                )
             elif user_id is not None:
-                query = select(GroupAdminsOrm).where(GroupAdminsOrm.user_id == user_id)
+                query = select(UserGroupsOrm).where(
+                    and_(
+                        UserGroupsOrm.user_id == user_id,
+                        UserGroupsOrm.is_admin == 1
+                    )
+                )
             else:
-                query = select(GroupAdminsOrm).where(GroupAdminsOrm.group_id == group_id)
+                query = select(UserGroupsOrm).where(
+                    and_(
+                    UserGroupsOrm.group_id == group_id,
+                    UserGroupsOrm.is_admin == 1
+                    )
+                )
             result = await session.execute(query)
             groups = result.scalars().all()
             return {group.group_id:group.user_id for group in groups}
@@ -124,14 +128,53 @@ class Database:
             query = select(GroupsOrm).where(GroupsOrm.group_id == group_id)
             result = await session.execute(query)
             return result.scalars().first() is not None
+    
+    @staticmethod
+    async def checkAdmin(user_id: int, group_id: int) -> bool:
+        """Check admin status of user in group"""
+        async with async_session_factory() as session:
+            query = select(UserGroupsOrm).where(
+                and_(
+                    UserGroupsOrm.group_id == group_id, 
+                    UserGroupsOrm.user_id == user_id,
+                    UserGroupsOrm.is_admin == 1
+                )
+            )
+            result = await session.execute(query)
+            return result.scalars().first() is not None
 
     @staticmethod
     async def checkUserGroup(user_id: int, group_id: int) -> bool:
         """Verify that the user belongs to a group"""
         async with async_session_factory() as session:
-            user = await session.get(
-                UsersOrm, 
-                user_id, 
-                options=[selectinload(UsersOrm.groups)]
+            query = select(UserGroupsOrm).where(
+                and_(
+                    UserGroupsOrm.group_id == group_id,
+                    UserGroupsOrm.user_id == user_id
+                )
             )
-            return any(group.group_id == group_id for group in user.groups)
+            result = await session.execute(query)
+            return result.scalars().first() is not None
+
+    @staticmethod
+    async def updateAdmin(user_id: int, group_id: int, value: bool) -> None:
+        """Updates user privileges by user_id and group_id in user_groups"""
+        async with async_session_factory() as session:
+            await session.execute(update(UserGroupsOrm).where(
+                and_(
+                    UserGroupsOrm.user_id == user_id,
+                    UserGroupsOrm.group_id == group_id
+                )).values({"is_admin": int(value)})
+            )
+            await session.flush()
+            await session.commit()
+
+
+    @staticmethod
+    async def deleteGroup(group_id: int) -> None:
+        """Delete group_id and group_name in every table"""
+        async with async_session_factory() as session:
+            await session.execute(text("PRAGMA foreign_keys = ON"))
+            query = delete(GroupsOrm).where(GroupsOrm.group_id == group_id)
+            await session.execute(query)
+            await session.commit()

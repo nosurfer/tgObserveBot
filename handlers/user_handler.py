@@ -41,12 +41,16 @@ async def start_handler(message: Message) -> None:
         await Database.insertUser(user_id, user_name)
         msg = f"{mention}, Вы были добавлены в систему.\n\n"
     
+
     if not await Database.checkUserGroup(user_id, user_group_id):
         if await Database.checkGroup(user_group_id):
             await Database.insertUserGroup(user_id, user_group_id)
     
-    msg += "Привязанные группы:\n"
-    for group_id, group_name in await Database.selectUserGroup(user_id):
-        msg += group_name + "\n"
-    
+    user_groups = await Database.selectUserGroup(user_id)
+    if user_groups:
+        msg += "Привязанные группы:\n"
+        for group_id, group_name in user_groups.items():
+            print("A\n\n\nA", group_id, group_name)
+            msg += group_name + "\n"
+
     await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")

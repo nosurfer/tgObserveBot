@@ -43,13 +43,13 @@ async def setCommands(bot: Bot):
 
     await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeAllPrivateChats())
     try:
-        for user_id, user_name in users:
+        for user_id, user_name in await Database.selectUser():
             print(user_id, user_name)
             await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeChat(chat_id=user_id))
     except:
         pass
     try:
-        for group_id, user_id in admins:
+        for group_id, user_id in await Database.selectAdmin():
             print(user_id, user_name)
             await bot.set_my_commands(commands=admin_commands, scope=BotCommandScopeChat(chat_id=user_id))
     except:
