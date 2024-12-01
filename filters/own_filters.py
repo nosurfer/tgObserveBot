@@ -22,7 +22,8 @@ class IsAdmin(Filter):
         pass
 
     async def __call__(self, message: Message) -> bool:
-        return await Database.checkValue(user_id=message.from_user.id, is_admin=True)
+        admins = await Database.selectAdmin()
+        return message.from_user.id in admins
 
 
 class IsOwner(Filter):
@@ -30,4 +31,4 @@ class IsOwner(Filter):
         pass
 
     async def __call__(self, message: Message) -> bool:
-        return message.from_user.id in env_values["OWNERS"]
+        return message.from_user.id in list(map(int, env_values["OWNERS"].split(";")))

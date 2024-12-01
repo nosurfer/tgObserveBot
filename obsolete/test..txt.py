@@ -97,3 +97,38 @@ if await Database.checkUser(user_id):
         await Database.insertUser(user_id, user_fullname)
         msg += f"{mention}, вы были успешно зарегистрированы!\n\n***Dev by @Sirius_Real, @ownnickname***"
         await message.answer(msg, parse_mode="Markdown")
+
+
+
+# @router.message(F.poll)
+# async def read_poll_handler(message: Message):
+#     global polls
+#     polls.append(message.poll.poll_id)
+#     msg = message.poll
+#     chat_id = message.chat.id
+#     print(msg.question,
+#         [_.text for _ in msg.options],
+#         msg.type,
+#         msg.correct_option_id,
+#         msg.is_anonymous)
+#     await message.answer(str(msg) + str(chat_id), parse_mode="Markdown")
+#     await message.answer_poll(
+#         question=msg.question,
+#         options=[_.text for _ in msg.options],
+#         type=msg.type,
+#         correct_option_id=msg.correct_option_id,
+#         is_anonymous=msg.is_anonymous
+#     )
+
+# @router.poll_answer()
+# async def poll_answer_handler(poll: PollAnswer):
+#     answer_ids = poll.option_ids # list of answers
+#     user_id = poll.user.id
+#     poll_id = poll.poll_id
+
+#     print(user_id)
+
+# @router.message(Command("Проверка"))
+# async def check_handler(message: Message):
+#     global polls
+#     await message.answer()

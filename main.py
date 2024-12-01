@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
-from handlers import user_handler, admin_handler, owner_handler, bot_handler
+from handlers import user_handler, admin_handler, owner_handler, bot_handler, group_handler
 
 from base_config import env_values
 from utils.commands import setCommands
@@ -21,7 +21,8 @@ async def main() -> None:
         user_handler.router,
         admin_handler.router,
         owner_handler.router,
-        bot_handler.router
+        bot_handler.router,
+        group_handler.router
     )
 
     await Database.createTables()

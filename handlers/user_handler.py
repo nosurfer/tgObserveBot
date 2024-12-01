@@ -12,23 +12,11 @@ router = Router()
 @router.message(CommandStart())
 async def start_handler(message: Message) -> None:    
     user_id = message.from_user.id
-    user_name = message.from_user.username or message.from_user.first_name
+    user_name = "@" + str(message.from_user.username) or message.from_user.first_name
     mention = "[@"+user_name+"](tg://user?id="+str(user_id)+")"
     
     title = """Простой и удобный телеграм бот для проведения опросов.\
         Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"""
-    
-    # проверка есть ли пользователь в системе
-    # да - дальше
-    # нет - добавить
-
-    # проверка есть ли у пользователя такая группа
-    # да - закончить проверку
-    # нет - проверить есть ли такая у бота
-
-    # проверка у бота
-    # есть - добавить пользователю
-    # отуствует - сказать об ошибке
 
     try:
         user_group_id = message.text.split()[1]
@@ -41,7 +29,6 @@ async def start_handler(message: Message) -> None:
         await Database.insertUser(user_id, user_name)
         msg = f"{mention}, Вы были добавлены в систему.\n\n"
     
-
     if not await Database.checkUserGroup(user_id, user_group_id):
         if await Database.checkGroup(user_group_id):
             await Database.insertUserGroup(user_id, user_group_id)
@@ -50,7 +37,6 @@ async def start_handler(message: Message) -> None:
     if user_groups:
         msg += "Привязанные группы:\n"
         for group_id, group_name in user_groups.items():
-            print("A\n\n\nA", group_id, group_name)
             msg += group_name + "\n"
 
     await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")

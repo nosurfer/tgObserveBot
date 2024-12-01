@@ -17,10 +17,13 @@ async def bot_group_member_status(update: ChatMemberUpdated):
 
     msg = f"Это простой и удобный телеграм бот для проведения опросов.\
             Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"
-    
-    if status == "member":
-        admins = await main.bot.get_chat_administrators(chat_id=chat_id)
-        admins = [(_.user.id, _.user.username or _.user.first_name) for _ in admins]
+    print(status)
+    if status == "member" and update.new_chat_member.user.id == main.bot.id:
+        admins = [
+            (_.user.id, _.user.username or _.user.first_name) 
+            for _ in await 
+            main.bot.get_chat_administrators(chat_id=chat_id)
+        ]
         await Database.insertGroup(group_id=chat_id, group_name=chat_name)
         for admin in admins:
             admin_id, admin_name = admin
@@ -32,5 +35,5 @@ async def bot_group_member_status(update: ChatMemberUpdated):
         kbrd = get_inline_keyboard(("Зарегистрироваться", None, f"https://t.me/{bot_info.username}?start={chat_id}"))
 
         await update.answer(msg + "***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown", reply_markup=kbrd)
-    else:
+    elif status in ["left", "kicked"] and update.new_chat_member.user.id == main.bot.id:
         await Database.deleteGroup(group_id=chat_id)

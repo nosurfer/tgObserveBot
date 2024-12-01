@@ -87,7 +87,7 @@ class Database:
             return {group.group_id:group.group_name for group in user.groups}
     
     @staticmethod
-    async def selectAdmin(user_id: int = None, group_id: int = None) -> dict:
+    async def selectAdmin(user_id: int = None, group_id: int = None, need_groups: bool = False) -> dict:
         """Select group_id and user_id where user is Admin by user_id or group_id or all values with None
         Return dict {group_id: user_id, ...}"""
         async with async_session_factory() as session:
@@ -111,7 +111,10 @@ class Database:
                 )
             result = await session.execute(query)
             groups = result.scalars().all()
-            return {group.group_id:group.user_id for group in groups}
+            if need_groups:
+                return {group.group_id:group.user_id for group in groups}
+            else:
+                return [grop.user_id for group in groups]
     
     @staticmethod
     async def checkUser(user_id: int) -> bool:
