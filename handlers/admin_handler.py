@@ -1,19 +1,18 @@
 # https://www.youtube.com/watch?v=55w2QpPGC-E&ab_channel=PythonHubStudio
 import main
 
-from aiogram import Router, F
+from aiogram import Router, F, FSMContext
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, PollAnswer, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 
 from filters.own_filters import ChatTypeFilter, IsAdmin, IsOwner
 from database.core import Database
 from utils.kbrd import get_keyboard, get_inline_keyboard
+from utils.states import PollState
 
 router = Router()
 router.message.filter(ChatTypeFilter("private"), IsOwner() or IsAdmin())
 
-poll = None
-mail = None
 
 @router.message(Command("admin"))
 async def admin_kbrd_handler(message: Message):
@@ -25,15 +24,14 @@ async def admin_kbrd_handler(message: Message):
 
 
 @router.message(F.text)
-async def mailing_handler(message: Message):
-    check_kbrd = get_inline_keyboard(("✅Да", "yes_mail", None))
-    global mail 
-    mail = message.text
-    await message.answer(mail)
-    await message.answer("Вы уверены что хотите отправить всем это сообщение?", reply_markup=check_kbrd)
+async def mailing_handler(message: Message, state: FSMContext):
+    ikbrd = get_inline_keyboard(("✅Да", "yes_mail", None))
+    await state.update_data(msg = message.text)
+    await message.reply("Вы уверены что хотите отправить всем это сообщение?", reply_markup=ikbrd)
+    await state.set_state(PollState.poll)
 
 
-@router.callback_query(F.data == "yes_mail")
+@router.callback_query(PollState.poll, F.data == "yes_mail")
 async def poll_check_handler(callback_query: CallbackQuery):
     global mail
     await callback_query.answer(text="Обработка результата")

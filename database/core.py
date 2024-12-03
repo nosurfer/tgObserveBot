@@ -49,7 +49,7 @@ class Database:
             await session.commit()
     
     @staticmethod
-    async def selectUser(user_id: int = None) -> dict:
+    async def selectUser(user_id: int = None) -> list:
         """Select user by user_id or select all users with none value
         Return dict - {user_id: user_name, ...}"""
         async with async_session_factory() as session:
@@ -59,10 +59,10 @@ class Database:
                 query = select(UsersOrm).where(UsersOrm.user_id == user_id)
             result = await session.execute(query)
             users = result.scalars().all()
-            return {user.user_id:user.user_name for user in users}
+            return [(user.user_id, user.user_name) for user in users]
     
     @staticmethod
-    async def selectGroup(group_id: int = None):
+    async def selectGroup(group_id: int = None) -> list:
         """Select group by group_id or select all groups with none value
         Return dict - {group_id: group_name, ...}"""
         async with async_session_factory() as session:
@@ -72,24 +72,26 @@ class Database:
                 query = select(GroupsOrm).where(GroupsOrm.group_id == group_id)
             result = await session.execute(query)
             groups = result.scalars().all()
-            return {group.group_id:group.group_name for group in groups}
+            return [(group.group_id, group.group_name) for group in groups]
 
     @staticmethod
-    async def selectUserGroup(user_id: int) -> dict:
-        """Select group where be user by group_id
-        Return dict - {group_id: group_name, ...}"""
+    async def selectUserGroup(user_id: int = None, group_id: int = None) -> list:
+        """Select group where be user by group_id or select user where user in
+        Return dict - {user_id: is_admin, ...} or {group_id: is_admin, ...}"""
         async with async_session_factory() as session:
-            user = await session.get(
-                UsersOrm, 
-                user_id, 
-                options=[selectinload(UsersOrm.groups)]
-            )
-            return {group.group_id:group.group_name for group in user.groups}
+            if group_id is None:
+                query = select(UserGroupsOrm).where(UserGroupsOrm.user_id == user_id)
+            elif user_id is None:
+                query = select(UserGroupsOrm).where(UserGroupsOrm.group_id == group_id)
+            else:
+                raise MyCrustomError("Parameter doesnt exist")
+            result = await session.execute(query)
+            return [(value.group_id, value.user_id, value.is_admin) for value in result]
     
     @staticmethod
-    async def selectAdmin(user_id: int = None, group_id: int = None, need_groups: bool = False) -> dict:
+    async def selectAdmin(user_id: int = None, group_id: int = None, need_groups: bool = False) -> list:
         """Select group_id and user_id where user is Admin by user_id or group_id or all values with None
-        Return dict {group_id: user_id, ...}"""
+        Return dict [(group_id, user_id), ...] or [user_id, ...]"""
         async with async_session_factory() as session:
             if user_id is None and group_id is None:
                 query = select(UserGroupsOrm).where(
@@ -112,7 +114,7 @@ class Database:
             result = await session.execute(query)
             groups = result.scalars().all()
             if need_groups:
-                return {group.group_id:group.user_id for group in groups}
+                return [(group.group_id, group.user_id) for group in groups]
             else:
                 return [grop.user_id for group in groups]
     

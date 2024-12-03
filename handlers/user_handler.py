@@ -39,4 +39,4 @@ async def start_handler(message: Message) -> None:
         for group_id, group_name in user_groups.items():
             msg += group_name + "\n"
 
-    await message.answer(title + msg + "\n***Dev by @Sirius_Real, @ownnickname***", parse_mode="Markdown")
+    await message.answer(title + msg, parse_mode="Markdown")
