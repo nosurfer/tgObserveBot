@@ -10,6 +10,8 @@ from utils.kbrd import get_keyboard, get_inline_keyboard
 router = Router()
 router.message.filter(ChatTypeFilter(["group", "supergroup"]), IsOwner() or IsAdmin())
 
+poll = None
+
 @router.message(F.poll)
 async def poll_handler(message: Message):
     global poll

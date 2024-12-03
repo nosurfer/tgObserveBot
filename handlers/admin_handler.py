@@ -1,9 +1,10 @@
 # https://www.youtube.com/watch?v=55w2QpPGC-E&ab_channel=PythonHubStudio
 import main
 
-from aiogram import Router, F, FSMContext
+from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, PollAnswer, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
 
 from filters.own_filters import ChatTypeFilter, IsAdmin, IsOwner
 from database.core import Database
@@ -16,6 +17,11 @@ router.message.filter(ChatTypeFilter("private"), IsOwner() or IsAdmin())
 
 @router.message(Command("admin"))
 async def admin_kbrd_handler(message: Message):
+    ikbrd = get_inline_keyboard(
+        ("👥 Выбрать группу", "admin:select_group", None),
+        ("✉️ Сделать рассылку", "admin:mailing", None),
+        ("📊 Создать опрос", "admin:poll", None)
+    )
     text = """*Админ панель*
 
 Для того, чтобы опубликовать опрос, просто оптравьте мне опрос, который необходимо отправить в группу!

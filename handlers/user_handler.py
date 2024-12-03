@@ -13,7 +13,7 @@ router = Router()
 async def start_handler(message: Message) -> None:    
     user_id = message.from_user.id
     user_name = "@" + str(message.from_user.username) or message.from_user.first_name
-    mention = "[@"+user_name+"](tg://user?id="+str(user_id)+")"
+    mention = "["+user_name+"](tg://user?id="+str(user_id)+")"
     
     title = """Простой и удобный телеграм бот для проведения опросов.\
         Создаёт опросы, собирает ответы и предоставляет статистику по результатам.\n\n"""
@@ -35,8 +35,8 @@ async def start_handler(message: Message) -> None:
     
     user_groups = await Database.selectUserGroup(user_id)
     if user_groups:
-        msg += "Привязанные группы:\n"
-        for group_id, group_name in user_groups.items():
-            msg += group_name + "\n"
+        for g_id, u_id, is_a in user_groups:
+            msg += "Привязанные группы:\n"
+            msg += await Database.selectGroup(g_id)[1] + "\n"
 
     await message.answer(title + msg, parse_mode="Markdown")
