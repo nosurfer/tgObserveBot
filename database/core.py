@@ -110,11 +110,11 @@ class Database:
             if user_id is not None:
                 query = select(UserGroupsOrm).where(_and(UserGroupsOrm.user_id == user_id, is_admin == 1))
                 result = await session.execute(query)
-                return [value.user_id for value in result]
+                return [value.group_id for value in result]
             elif group_id is not None:
                 query = select(UserGroupsOrm).where(_and(UserGroupsOrm.group_id == group_id, is_admin == 1))
                 result = await session.execute(query)
-                return [value.group_id for value in result]
+                return [value.user_id for value in result]
             else:
                 query = select(UserGroupsOrm).where(is_admin == 1)
                 result = await session.execute(query)
