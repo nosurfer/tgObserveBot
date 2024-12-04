@@ -93,9 +93,9 @@ class Database:
         """Select group where be user by group_id or select user where user in
         Return list - [(group_id, user_id, is_admin) ...]"""
         async with async_session_factory() as session:
-            if group_id is None:
+            if user_id is None:
                 query = select(UserGroupsOrm).where(UserGroupsOrm.user_id == user_id)
-            elif user_id is None:
+            elif group_id is None:
                 query = select(UserGroupsOrm).where(UserGroupsOrm.group_id == group_id)
             else:
                 raise MyCrustomError("Parameter doesnt exist")
@@ -108,15 +108,15 @@ class Database:
         Return list - [user_id, ...] or [group_id, ...] or [(group_id, user_id), ...]"""
         async with async_session_factory() as session:
             if user_id is not None:
-                query = select(UserGroupsOrm).where(_and(UserGroupsOrm.user_id == user_id, is_admin == 1))
+                query = select(UserGroupsOrm).where(_and(UserGroupsOrm.user_id == user_id, UserGroupsOrm.is_admin == 1))
                 result = await session.execute(query)
                 return [value.group_id for value in result]
             elif group_id is not None:
-                query = select(UserGroupsOrm).where(_and(UserGroupsOrm.group_id == group_id, is_admin == 1))
+                query = select(UserGroupsOrm).where(_and(UserGroupsOrm.group_id == group_id, UserGroupsOrm.is_admin == 1))
                 result = await session.execute(query)
                 return [value.user_id for value in result]
             else:
-                query = select(UserGroupsOrm).where(is_admin == 1)
+                query = select(UserGroupsOrm).where(UserGroupsOrm.is_admin == 1)
                 result = await session.execute(query)
                 return [(value.group_id, value.user_id) for value in result]
         

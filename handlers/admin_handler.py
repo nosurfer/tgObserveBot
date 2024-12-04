@@ -1,5 +1,5 @@
 # https://www.youtube.com/watch?v=55w2QpPGC-E&ab_channel=PythonHubStudio
-import main
+from main import bot
 
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
@@ -14,35 +14,74 @@ from utils.states import PollState, GroupState
 router = Router()
 router.message.filter(ChatTypeFilter("private"), IsOwner() or IsAdmin())
 
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder, InlineKeyboardButton
+
 @router.message(Command("admin"))
-async def admin_kbrd_handler(message: Message):
+async def admin_ikbrd_handler(message: Message):
     ikbrd = get_inline_keyboard(
         {"text": "👥 Выбрать группу","callback_data": "admin:select_group", "request_chat": {"request_id": 1, "chat_is_channel": False}},
         {"text": "✉️ Сделать рассылку", "callback_data": "admin:mailing"},
         {"text": "📊 Создать опрос", "callback_data": "admin:poll"},
         sizes=(1,)
     )
-
     text = """*Админ панель*"""
+    
     await message.answer(text, parse_mode="Markdown", reply_markup=ikbrd)
 
-# @router.callback_query(F.data == "admin:select_group")
-# async def group_selector_handler(callback_query: CallbackQuery, state: FSMContext):
-#     kbrd = get_keyboard(
-#         {"text": "Выберите группу", "request_chat": {"request_id": 1, "chat_is_channel": False}}
+
+# @router.callback_query(F.data == "admin:back")
+# async def admin_ikbrd_reply_handler(callback_query: CallbackQuery):
+#     ikbrd = get_inline_keyboard(
+#         {"text": "👥 Выбрать группу","callback_data": "admin:select_group", "request_chat": {"request_id": 1, "chat_is_channel": False}},
+#         {"text": "✉️ Сделать рассылку", "callback_data": "admin:mailing"},
+#         {"text": "📊 Создать опрос", "callback_data": "admin:poll"},
+#         sizes=(1,)
 #     )
-#     # user_id = message.from_user.id
-#     # groups = await Database.selectAdmin(user_id)
-#     # for group in groups:
-#     #     group_id, group_name = await Database.selectGroup(group)
-#     await callback_query.message.answer("aboba", reply_markup=kbrd)
-#     # await state.set_state(GroupState.group)
+
+#     text = """*Админ панель*"""
+#     await callback_query.message.delete()
+#     await callback_query.message.answer(text, parse_mode="Markdown", reply_markup=ikbrd)
+
+@router.callback_query(F.data == "admin:select_group")
+async def group_selector_handler(callback_query: CallbackQuery, state: FSMContext):
+    ikbrd = get_inline_keyboard(
+        {"text": "Установить группу", "callback_data": "group:select"},
+        {"text": "Вернуться назад", "callback_data": "admin:back"}
+    )
+    kbrd = get_keyboard(
+        {"text": "Выберите группу", "request_chat": {"request_id": 1, "chat_is_channel": False}},
+        placeholder="Выберите группу для взаимодействия:",
+        sizes=(1,)
+    )
+
+    current_group = await state.get_data() or "Не выбрана"
+
+    group_list = ""
+    groups = await Database.selectUserGroup(callback_query.from_user.id)
+    for index, group_id, user_id, is_admin in enumerate(groups, start=1):
+        group_id, group_name = await Database.selectGroup(group_id)
+        group_list += f"{index}) {group_name}\n"
+
+    await callback_query.message.answer(
+        f"Установите группу, для дальнейшего взаимодействия с ней и её участниками\n\nВаши группы:\n{group_list}\nТекущая группа: {current_group}",
+        reply_markup=kbrd)
+
+
+
+@router.message(F.text == "asdf")
+async def mailing_handler(message: Message, state: FSMContext):
+    await state.set_state(PollState.poll)
+    await state.update_data(txt = message.text)
+    await state.finish()
+
+
+
+
+
 
 
 @router.message(F.text)
 async def mailing_handler(message: Message, state: FSMContext):
-    ikbrd = get_inline_keyboard(("✅Да", "yes_mail", None))
+    ikbrd = get_inline_keyboard({"text": "✅Да", "callback_data": "yes_mail"})
     await state.update_data(msg = message.text)
     await message.reply("Вы уверены что хотите отправить всем это сообщение?", reply_markup=ikbrd)
     await state.set_state(PollState.poll)
