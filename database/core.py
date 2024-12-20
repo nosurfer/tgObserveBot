@@ -178,6 +178,35 @@ class Database:
 
 
     @staticmethod
+    async def getCurGroup(user_id: int) -> int:
+        """Get group id by user_id or None"""
+        async with async_session_factory() as session:
+            query = select(UserGroupsOrm).where(and_(UserGroupsOrm.user_id == user_id, UserGroupsOrm.select_group == 1))
+            result = await session.execute(query)
+            if result.scalars().first() is not None:
+                return [value.group_id for value in result][0]
+            return None
+
+
+    @staticmethod
+    async def setCurGroup(user_id: int, group_id: int) -> None:
+        """Set group for admin"""
+        async with async_session_factory() as session:
+            await session.execute(
+                update(UserGroupsOrm).where(and_(
+                    UserGroupsOrm.user_id == user_id,
+                    UserGroupsOrm.select_group == 1
+                )).values({"select_group": 0}))
+            await session.execute(
+                update(UserGroupsOrm).where(and_(
+                        UserGroupsOrm.user_id == user_id,
+                        UserGroupsOrm.group_id == group_id
+                    )).values({"select_group": 1}))
+            await session.flush()
+            await session.commit()
+
+
+    @staticmethod
     async def deleteGroup(group_id: int) -> None:
         """Delete group_id and group_name in every table"""
         async with async_session_factory() as session:

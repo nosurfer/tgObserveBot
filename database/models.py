@@ -13,6 +13,7 @@ class UserGroupsOrm(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete="CASCADE"), primary_key=True)
     group_id: Mapped[int] = mapped_column(ForeignKey('groups.group_id', ondelete="CASCADE"), primary_key=True)
     is_admin: Mapped[int] = mapped_column(server_default="0", nullable=False)
+    select_group: Mapped[int] = mapped_column(nullable=True)
 
     user = relationship("UsersOrm", back_populates="user_groups")
     group = relationship("GroupsOrm", back_populates="user_groups")
