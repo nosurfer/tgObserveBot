@@ -93,14 +93,15 @@ class Database:
         """Select group where be user by group_id or select user where user in
         Return list - [(group_id, user_id, is_admin) ...]"""
         async with async_session_factory() as session:
-            if user_id is None:
+            if group_id is None:
                 query = select(UserGroupsOrm).where(UserGroupsOrm.user_id == user_id)
-            elif group_id is None:
+            elif user_id is None:
                 query = select(UserGroupsOrm).where(UserGroupsOrm.group_id == group_id)
             else:
                 raise MyCrustomError("Parameter doesnt exist")
             result = await session.execute(query)
-            return [(value.group_id, value.user_id, value.is_admin) for value in result]
+            values = result.scalars().all()
+            return [(value.group_id, value.user_id, value.is_admin) for value in values]
     
     @staticmethod
     async def selectAdmin(user_id: int = None, group_id: int = None) -> list:
@@ -183,9 +184,10 @@ class Database:
         async with async_session_factory() as session:
             query = select(UserGroupsOrm).where(and_(UserGroupsOrm.user_id == user_id, UserGroupsOrm.select_group == 1))
             result = await session.execute(query)
-            if result.scalars().first() is not None:
-                return [value.group_id for value in result][0]
-            return None
+            try:
+                return result.scalars().first().group_id
+            except:
+                return None
 
 
     @staticmethod

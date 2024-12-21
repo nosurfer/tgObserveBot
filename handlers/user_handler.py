@@ -33,10 +33,10 @@ async def start_handler(message: Message) -> None:
         if await Database.checkGroup(user_group_id):
             await Database.insertUserGroup(user_id, user_group_id)
     
-    user_groups = await Database.selectUserGroup(user_id)
+    msg += "Привязанные группы:\n"
+    user_groups = await Database.selectUserGroup(user_id=user_id)
     if user_groups:
         for g_id, u_id, is_a in user_groups:
-            msg += "Привязанные группы:\n"
-            msg += await Database.selectGroup(g_id)[1] + "\n"
-
+            group = await Database.selectGroup(g_id)
+            msg += " - " + group[0][1] + "\n"
     await message.answer(title + msg, parse_mode="Markdown")

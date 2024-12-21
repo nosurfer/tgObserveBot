@@ -14,7 +14,6 @@ from utils.states import PollState, GroupState
 router = Router()
 router.message.filter(ChatTypeFilter("private"), IsOwner() or IsAdmin())
 
-
 @router.message(Command("admin"))
 async def admin_ikbrd_handler(message: Message):
     ikbrd = get_inline_keyboard(
@@ -27,6 +26,7 @@ async def admin_ikbrd_handler(message: Message):
     
     await message.answer(text, parse_mode="Markdown", reply_markup=ikbrd)
 
+
 @router.callback_query(F.data == "admin:select_group")
 async def group_selector_handler(callback_query: CallbackQuery, state: FSMContext):
     kbrd = get_keyboard(
@@ -36,16 +36,24 @@ async def group_selector_handler(callback_query: CallbackQuery, state: FSMContex
     )
 
     current_group = await Database.getCurGroup(callback_query.from_user.id)
+    current_group = 0 if current_group == None else current_group
+    current_group = await Database.selectGroup(current_group)
 
-    await callback_query.message.answer(
-        f"Текущая выбранная группа: {current_group if current_group is not None else '**не выбрано**'}", 
-        parse_mode="Markdown",
-        reply_markup=kbrd)
+    await callback_query.message.answer(f"Текущая выбранная группа: {current_group if current_group else "**группа не выбрана**"}", parse_mode="Markdown", reply_markup=kbrd)
 
-@router.message(F.request_id == 1)
-async def mailing_handler(message: Message):
-    print(message.request_id)
-    print(message)
+
+@router.message(F.chat_shared.request_id == 1)
+async def handle_chat_shared(message: Message):
+    user_id = message.from_user.id
+    group_id = message.chat_shared.chat_id
+    if await Database.checkUserGroup(user_id, group_id):
+        await Database.setCurGroup(user_id, group_id)
+        await message.reply("Ваша группа установлена!", reply_markup=ReplyKeyboardRemove())
+    else:
+        await message.reply(
+            "Вы не являетесь админом данной группы, или бот отсутсвует в данной группе",
+            reply_markup=ReplyKeyboardRemove())
+
 
 
 
